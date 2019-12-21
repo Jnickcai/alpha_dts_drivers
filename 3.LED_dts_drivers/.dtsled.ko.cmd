@@ -1,0 +1,1 @@
+cmd_/home/nick/linux/linux_drivers/3.LED_dts_drivers/dtsled.ko := arm-linux-gnueabihf-ld -EL -r  -T ./scripts/module-common.lds --build-id  -o /home/nick/linux/linux_drivers/3.LED_dts_drivers/dtsled.ko /home/nick/linux/linux_drivers/3.LED_dts_drivers/dtsled.o /home/nick/linux/linux_drivers/3.LED_dts_drivers/dtsled.mod.o
