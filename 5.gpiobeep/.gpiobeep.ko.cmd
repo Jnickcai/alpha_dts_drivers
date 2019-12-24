@@ -1,0 +1,1 @@
+cmd_/home/nick/linux/linux_drivers/5.gpiobeep/gpiobeep.ko := arm-linux-gnueabihf-ld -EL -r  -T ./scripts/module-common.lds --build-id  -o /home/nick/linux/linux_drivers/5.gpiobeep/gpiobeep.ko /home/nick/linux/linux_drivers/5.gpiobeep/gpiobeep.o /home/nick/linux/linux_drivers/5.gpiobeep/gpiobeep.mod.o

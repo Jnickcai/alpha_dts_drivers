@@ -16,12 +16,12 @@
 #include <asm/io.h>
 
 #define DTSLED_CNT      1           /* 设备号个数 */
-#define DTSLED_NAME     "gpioled"    /* 名字 */
-#define LEDOFF          0           /* 关灯 */
-#define LEDON           1           /* 开灯 */
+#define DTSLED_NAME     "gpiobeep"    /* 名字 */
+#define BEEPOFF          0           /* 关灯 */
+#define BEEPON           1           /* 开灯 */
 
 /* gpioled 设备结构体 */
-struct  gpioled_dev
+struct  gpiobeep_dev
 {
     dev_t  devid;               /*设备号*/
     struct cdev   cdev;         /* cdev */
@@ -30,10 +30,10 @@ struct  gpioled_dev
     int    major;                /*主设备号 */
     int    minor;                /*次设备号*/
     struct device_node *nd;       /*设备节点*/
-    int led_gpio; /* led  所使用的 GPIO  编号 */
+    int beep_gpio; /* led  所使用的 GPIO  编号 */
 };
 
-struct gpioled_dev gpioled;   //led设备
+struct gpiobeep_dev gpiobeep;   //beep设备
 
 
 /*
@@ -43,9 +43,9 @@ struct gpioled_dev gpioled;   //led设备
  * 一般在 open 的时候将 private_data 指向设备结构体。
  * @return : 0 成功;其他 失败
  */
-static int led_open(struct inode *inode,struct file *filp)
+static int beep_open(struct inode *inode,struct file *filp)
 {
-    filp->private_data = &gpioled;   //设置私有数据
+    filp->private_data = &gpiobeep;   //设置私有数据
     return 0;
 }
 
@@ -57,7 +57,7 @@ static int led_open(struct inode *inode,struct file *filp)
  * @param – offt : 相对于文件首地址的偏移
  * @return : 读取的字节数，如果为负值，表示读取失败
  */
-static ssize_t led_read(struct file *filp,char __user *buf,size_t cnt,loff_t *offt)
+static ssize_t beep_read(struct file *filp,char __user *buf,size_t cnt,loff_t *offt)
 {
     return 0;
 }
@@ -70,12 +70,12 @@ static ssize_t led_read(struct file *filp,char __user *buf,size_t cnt,loff_t *of
  * @param – offt : 相对于文件首地址的偏移
  * @return : 写入的字节数，如果为负值，表示写入失败
  */
-static ssize_t led_write (struct file *filp,const char __user *buf,size_t cnt,loff_t *offt)
+static ssize_t beep_write (struct file *filp,const char __user *buf,size_t cnt,loff_t *offt)
 {
     int retvalue;
     unsigned char databuf[1];
-    unsigned char ledstat;
-    struct gpioled_dev *dev = filp->private_data;
+    unsigned char beepstat;
+    struct gpiobeep_dev *dev = filp->private_data;
 
     retvalue = copy_from_user(databuf,buf,cnt);
     if(retvalue < 0)
@@ -84,13 +84,13 @@ static ssize_t led_write (struct file *filp,const char __user *buf,size_t cnt,lo
         return -EFAULT;
     }
 
-    ledstat = databuf[0];  //获取状态值
-    if(ledstat == LEDON)
+    beepstat = databuf[0];  //获取状态值
+    if(beepstat == BEEPON)
     {
-        gpio_set_value(dev->led_gpio,0);
-    }else if(ledstat == LEDOFF)
+        gpio_set_value(dev->beep_gpio,0);
+    }else if(beepstat == BEEPOFF)
     {
-        gpio_set_value(dev->led_gpio,1);
+        gpio_set_value(dev->beep_gpio,1);
     }
     return 0;
 }
@@ -100,18 +100,18 @@ static ssize_t led_write (struct file *filp,const char __user *buf,size_t cnt,lo
  * @param – filp : 要关闭的设备文件(文件描述符)
  * @return : 0 成功;其他 失败
  */
- static int led_release(struct inode *inode, struct file *filp)
+ static int beep_release(struct inode *inode, struct file *filp)
  {
     return 0;
  }
 
  /* 设备操作函数 */
- static struct file_operations gpioled_fops = {
+ static struct file_operations gpiobeep_fops = {
      .owner     = THIS_MODULE,
-     .open      = led_open,
-     .read      = led_read,
-     .write     = led_write,
-     .release   = led_release,
+     .open      = beep_open,
+     .read      = beep_read,
+     .write     = beep_write,
+     .release   = beep_release,
  };
 
  /*
@@ -119,34 +119,34 @@ static ssize_t led_write (struct file *filp,const char __user *buf,size_t cnt,lo
  * @param : 无
  * @return : 无
  */
- static int __init led_init(void)
+ static int __init beep_init(void)
  {
     int ret;
 
     /* 设置 LED 所使用的 GPIO */
     /* 1、获取设备节点：gpioled */
-    gpioled.nd = of_find_node_by_path("/gpioled");
-    if(gpioled.nd == NULL)
+    gpiobeep.nd = of_find_node_by_path("/gpiobeep");
+    if(gpiobeep.nd == NULL)
     {
-        printk("gpioled node not find!!!!\r\n");
+        printk("gpiobeep node not find!!!!\r\n");
         return -EINVAL;
     }
     else
     {
-        printk ("gpioled node find!!!\r\n");
+        printk ("gpiobeep node find!!!\r\n");
     }
      
      /* 2、 获取设备树中的 gpio 属性，得到 LED 所使用的 LED 编号 */
-    gpioled.led_gpio = of_get_named_gpio(gpioled.nd,"led-gpio",0);
-    if(gpioled.led_gpio < 0)
+    gpiobeep.beep_gpio = of_get_named_gpio(gpiobeep.nd,"beep-gpio",0);
+    if(gpiobeep.beep_gpio < 0)
     {
         printk("cat't get led-gpio");
         return -EINVAL;
     }
-    printk("led-gpio num = %d\r\n", gpioled.led_gpio);
+    printk("led-gpio num = %d\r\n", gpiobeep.beep_gpio);
 
     /* 3、设置 GPIO1_IO03 为输出，并且输出高电平，默认关闭 LED 灯 */
-    ret = gpio_direction_output(gpioled.led_gpio,1);
+    ret = gpio_direction_output(gpiobeep.beep_gpio,1);
     if (ret < 0)
     {
         printk("can't set gpio!\r\n");
@@ -154,38 +154,38 @@ static ssize_t led_write (struct file *filp,const char __user *buf,size_t cnt,lo
 
  /* 注册字符设备驱动 */
  /* 1、创建设备号 */
- if(gpioled.major)
+ if(gpiobeep.major)
  {
-    gpioled.devid = MKDEV(gpioled.major,0);
-    register_chrdev_region(gpioled.devid,DTSLED_CNT,DTSLED_NAME);
+    gpiobeep.devid = MKDEV(gpiobeep.major,0);
+    register_chrdev_region(gpiobeep.devid,DTSLED_CNT,DTSLED_NAME);
  }
  else
  {
-    alloc_chrdev_region(&gpioled.devid,0,DTSLED_CNT,DTSLED_NAME);
-    gpioled.major = MAJOR(gpioled.devid); /* 获取分配号的主设备号 */
-    gpioled.minor = MINOR(gpioled.devid); /* 获取分配号的次设备号 */
+    alloc_chrdev_region(&gpiobeep.devid,0,DTSLED_CNT,DTSLED_NAME);
+    gpiobeep.major = MAJOR(gpiobeep.devid); /* 获取分配号的主设备号 */
+    gpiobeep.minor = MINOR(gpiobeep.devid); /* 获取分配号的次设备号 */
  }
- printk("gpioled major=%d,minor=%d\r\n",gpioled.major,gpioled.minor);
+ printk("gpiobeep major=%d,minor=%d\r\n",gpiobeep.major,gpiobeep.minor);
 
  /* 2、初始化 cdev */
- gpioled.cdev.owner = THIS_MODULE;
- cdev_init(&gpioled.cdev, &gpioled_fops);
+ gpiobeep.cdev.owner = THIS_MODULE;
+ cdev_init(&gpiobeep.cdev, &gpiobeep_fops);
 
  /* 3、添加一个 cdev */
- cdev_add(&gpioled.cdev,gpioled.devid,DTSLED_CNT);
+ cdev_add(&gpiobeep.cdev,gpiobeep.devid,DTSLED_CNT);
 
  /* 4、创建类 */
- gpioled.class = class_create(THIS_MODULE, DTSLED_NAME);
- if (IS_ERR(gpioled.class))
+ gpiobeep.class = class_create(THIS_MODULE, DTSLED_NAME);
+ if (IS_ERR(gpiobeep.class))
  {
-    return PTR_ERR(gpioled.class);
+    return PTR_ERR(gpiobeep.class);
  }
 
  /* 5、创建设备 */
- gpioled.device = device_create(gpioled.class, NULL, gpioled.devid,NULL, DTSLED_NAME);
- if (IS_ERR(gpioled.device)) 
+ gpiobeep.device = device_create(gpiobeep.class, NULL, gpiobeep.devid,NULL, DTSLED_NAME);
+ if (IS_ERR(gpiobeep.device)) 
  {
-    return PTR_ERR(gpioled.device);
+    return PTR_ERR(gpiobeep.device);
  }
     return 0;
 }
@@ -195,20 +195,20 @@ static ssize_t led_write (struct file *filp,const char __user *buf,size_t cnt,lo
  * @param : 无
  * @return : 无
  */
- static void __exit led_exit(void)
+ static void __exit beep_exit(void)
  {
  /* 注销设备后关闭LED*/
-    gpio_set_value(gpioled.led_gpio,1);
+    gpio_set_value(gpiobeep.beep_gpio,1);
 
  /* 注销字符设备驱动 */
-    cdev_del(&gpioled.cdev);/* 删除 cdev */
-    unregister_chrdev_region(gpioled.devid, DTSLED_CNT);/*注销设备号*/
+    cdev_del(&gpiobeep.cdev);/* 删除 cdev */
+    unregister_chrdev_region(gpiobeep.devid, DTSLED_CNT);/*注销设备号*/
 
-    device_destroy(gpioled.class, gpioled.devid);
-    class_destroy(gpioled.class);
+    device_destroy(gpiobeep.class, gpiobeep.devid);
+    class_destroy(gpiobeep.class);
  }
 
- module_init(led_init);
- module_exit(led_exit);
+ module_init(beep_init);
+ module_exit(beep_exit);
  MODULE_LICENSE("GPL");
  MODULE_AUTHOR("NICK");
