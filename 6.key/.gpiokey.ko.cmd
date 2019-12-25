@@ -1,0 +1,1 @@
+cmd_/home/nick/linux/linux_drivers/6.key/gpiokey.ko := arm-linux-gnueabihf-ld -EL -r  -T ./scripts/module-common.lds --build-id  -o /home/nick/linux/linux_drivers/6.key/gpiokey.ko /home/nick/linux/linux_drivers/6.key/gpiokey.o /home/nick/linux/linux_drivers/6.key/gpiokey.mod.o
