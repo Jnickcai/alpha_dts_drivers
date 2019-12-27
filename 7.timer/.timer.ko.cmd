@@ -1,0 +1,1 @@
+cmd_/home/nick/linux/linux_drivers/7.timer/timer.ko := arm-linux-gnueabihf-ld -EL -r  -T ./scripts/module-common.lds --build-id  -o /home/nick/linux/linux_drivers/7.timer/timer.ko /home/nick/linux/linux_drivers/7.timer/timer.o /home/nick/linux/linux_drivers/7.timer/timer.mod.o
