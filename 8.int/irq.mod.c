@@ -26,13 +26,12 @@ __attribute__((section("__versions"))) = {
 	{ 0x6f0036d9, __VMLINUX_SYMBOL_STR(del_timer_sync) },
 	{ 0xfa2bcf10, __VMLINUX_SYMBOL_STR(init_timer_key) },
 	{ 0xd6b8e852, __VMLINUX_SYMBOL_STR(request_threaded_irq) },
-	{ 0x69fa1227, __VMLINUX_SYMBOL_STR(irq_of_parse_and_map) },
+	{ 0x94616f8b, __VMLINUX_SYMBOL_STR(gpiod_to_irq) },
 	{ 0xb7cfa4a8, __VMLINUX_SYMBOL_STR(gpiod_direction_input) },
 	{ 0x47229b5c, __VMLINUX_SYMBOL_STR(gpio_request) },
 	{ 0x91715312, __VMLINUX_SYMBOL_STR(sprintf) },
 	{ 0xfa2a45e, __VMLINUX_SYMBOL_STR(__memzero) },
 	{ 0xde6fb46c, __VMLINUX_SYMBOL_STR(of_get_named_gpio_flags) },
-	{ 0x27e1a049, __VMLINUX_SYMBOL_STR(printk) },
 	{ 0xfbed6f8c, __VMLINUX_SYMBOL_STR(of_find_node_opts_by_path) },
 	{ 0x17d73699, __VMLINUX_SYMBOL_STR(device_create) },
 	{ 0x3c8c7d13, __VMLINUX_SYMBOL_STR(__class_create) },
@@ -44,6 +43,7 @@ __attribute__((section("__versions"))) = {
 	{ 0xc8fd727e, __VMLINUX_SYMBOL_STR(mod_timer) },
 	{ 0x3bd1b1f6, __VMLINUX_SYMBOL_STR(msecs_to_jiffies) },
 	{ 0x67c2fa54, __VMLINUX_SYMBOL_STR(__copy_to_user) },
+	{ 0x27e1a049, __VMLINUX_SYMBOL_STR(printk) },
 	{ 0x83f62a58, __VMLINUX_SYMBOL_STR(gpiod_get_raw_value) },
 	{ 0x3089e8ae, __VMLINUX_SYMBOL_STR(gpio_to_desc) },
 	{ 0xefd6cf06, __VMLINUX_SYMBOL_STR(__aeabi_unwind_cpp_pr0) },
@@ -55,4 +55,4 @@ __attribute__((section(".modinfo"))) =
 "depends=";
 
 
-MODULE_INFO(srcversion, "86FD39DF5AAB3E015B054AC");
+MODULE_INFO(srcversion, "2EF71A6E0AF5384E5993FA2");

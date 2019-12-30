@@ -91,11 +91,12 @@ void timer_function(unsigned long arg)
     value = gpio_get_value(keydesc->gpio);  /* 读取 IO 值 */
     if(value == 0)      /* 按下按键 */
     {
-        atomic_set(&dev->keyvalue,keydesc->value);
+        atomic_set(&dev->keyvalue,keydesc->value);  //有效的按键键值
+        printk("key press!!!\r\n");
     }
     else            /* 按键松开 */
     {
-        atomic_set(&dev->keyvalue,0x80 |keydesc->value);
+        atomic_set(&dev->keyvalue, 0x80 | keydesc->value); //无效的按键键值
         atomic_set(&dev->releasekey,1);     /* 标记松开按键 */
     }
 }
@@ -110,7 +111,7 @@ static int keyio_init(void)
     char name[10];
     int ret = 0;
 
-    imx6uirq.nd = of_find_node_by_path("gpiokey");
+    imx6uirq.nd = of_find_node_by_path("/gpiokey");
     if(imx6uirq.nd == NULL)
     {
         printk("key node not find!!!\r\n");
@@ -135,8 +136,8 @@ static int keyio_init(void)
         sprintf(imx6uirq.irqkeydesc[i].name, "KEY%d", i);
         gpio_request(imx6uirq.irqkeydesc[i].gpio,name);
         gpio_direction_input(imx6uirq.irqkeydesc[i].gpio);
-        imx6uirq.irqkeydesc[i].irqnum = irq_of_parse_and_map(imx6uirq.nd, i);
-
+        //imx6uirq.irqkeydesc[i].irqnum = irq_of_parse_and_map(imx6uirq.nd, i);
+        imx6uirq.irqkeydesc[i].irqnum = gpio_to_irq(imx6uirq.irqkeydesc[i].gpio);
         printk("key%d:gpio=%d, irqnum=%d\r\n",i,imx6uirq.irqkeydesc[i].gpio,imx6uirq.irqkeydesc[i].irqnum);
     }
     /* 申请中断 */
@@ -204,8 +205,9 @@ static ssize_t imx6uirq_read(struct file *filp,char __user *buf,size_t cnt, loff
     }
     else
     {
-        goto data_error;
+       ret = copy_to_user(buf, &keyvalue,sizeof(keyvalue));
     }
+    
     return 0;
 
     data_error:

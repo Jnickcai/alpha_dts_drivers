@@ -38,10 +38,12 @@
         ret = read(fd, &data, sizeof(data));
         if (ret < 0) 
         { /* 数据读取错误或者无效 */
+            printf("read key failed!!!\r\n");
+            return ret;
         } 
         else 
         { /* 数据读取正确 */
-            if (data) /* 读取到数据 */
+            if (data != 0xFF) /* 读取到数据 */
             printf("key value = %#X\r\n", data);
         }
     }
