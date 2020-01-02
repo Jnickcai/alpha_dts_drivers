@@ -205,7 +205,7 @@ static ssize_t imx6uirq_read(struct file *filp,char __user *buf,size_t cnt, loff
     }
     else
     {
-       ret = copy_to_user(buf, &keyvalue,sizeof(keyvalue));
+       goto data_error;
     }
     
     return 0;
