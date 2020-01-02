@@ -1,0 +1,1 @@
+cmd_/home/nick/linux/linux_drivers/9._biockio/blockio.ko := arm-linux-gnueabihf-ld -EL -r  -T ./scripts/module-common.lds --build-id  -o /home/nick/linux/linux_drivers/9._biockio/blockio.ko /home/nick/linux/linux_drivers/9._biockio/blockio.o /home/nick/linux/linux_drivers/9._biockio/blockio.mod.o
