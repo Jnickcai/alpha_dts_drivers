@@ -95,7 +95,7 @@ void timer_function(unsigned long arg)
     if(value == 0)      /* 按下按键 */
     {
         atomic_set(&dev->keyvalue,keydesc->value);  //有效的按键键值
-        printk("key press!!!\r\n");
+        printk("key press!!!  key = %d\r\n",dev->keyvalue.counter);
     }
     else            /* 按键松开 */
     {
@@ -197,7 +197,9 @@ static ssize_t imx6uirq_read(struct file *filp,char __user *buf,size_t cnt, loff
     unsigned char keyvalue = 0;
     unsigned char releaseky = 0;
     struct imx6uirq_dev *dev = (struct imx6uirq_dev *)filp->private_data;
-    keyvalue = atomic_read(&dev->keyvalue);
+    
+    
+
     #if 0
     ret = wait_event_interruptible(dev->r_wait, atomic_read(&dev->releasekey));
     if(ret)
@@ -206,6 +208,7 @@ static ssize_t imx6uirq_read(struct file *filp,char __user *buf,size_t cnt, loff
     }
     #endif
     DECLARE_WAITQUEUE(wait,current);     /*  定义一个等待队列 */
+    keyvalue = atomic_read(&dev->keyvalue);
     releaseky = atomic_read(&dev->releasekey);
     if(releaseky == 0)  /*  没有按键按下 */
     {
@@ -215,7 +218,6 @@ static ssize_t imx6uirq_read(struct file *filp,char __user *buf,size_t cnt, loff
         if (signal_pending(current))    /*  判断是否为信号引起的唤醒 */
         {
             ret = -ERESTARTSYS;
-            printk("testing\r\n");
             goto wait_error;
         }
     }
@@ -230,7 +232,6 @@ static ssize_t imx6uirq_read(struct file *filp,char __user *buf,size_t cnt, loff
         goto data_error;
     }
     atomic_set(&dev->releasekey, 0);  /* 按下标志清零 */
-    
     return 0;
 
     wait_error:
