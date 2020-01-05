@@ -1,0 +1,1 @@
+cmd_/home/nick/linux/linux_drivers/12.dtsplatform/dtsplatform.ko := arm-linux-gnueabihf-ld -EL -r  -T ./scripts/module-common.lds --build-id  -o /home/nick/linux/linux_drivers/12.dtsplatform/dtsplatform.ko /home/nick/linux/linux_drivers/12.dtsplatform/dtsplatform.o /home/nick/linux/linux_drivers/12.dtsplatform/dtsplatform.mod.o
