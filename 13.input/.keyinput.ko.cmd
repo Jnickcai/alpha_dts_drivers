@@ -1,0 +1,1 @@
+cmd_/home/nick/linux/linux_drivers/13.input/keyinput.ko := arm-linux-gnueabihf-ld -EL -r  -T ./scripts/module-common.lds --build-id  -o /home/nick/linux/linux_drivers/13.input/keyinput.ko /home/nick/linux/linux_drivers/13.input/keyinput.o /home/nick/linux/linux_drivers/13.input/keyinput.mod.o

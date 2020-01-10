@@ -41,7 +41,7 @@ struct irq_keydesc
     unsigned char value;    /* 按键对应的键值 */
     char name[10];          /* 名字 */
     irqreturn_t (*handler) (int,void *);    /* 中断服务函数 */
-}
+};
 
 /* keyinput 设备结构体 */
 struct keyinput_dev
@@ -52,7 +52,7 @@ struct keyinput_dev
     struct device *device;  /* 设备 */
     int major;              /* 主设备号 */
     int minor;              /* 次设备号 */
-    struct device_node *node;  /* 设备节点 */
+    struct device_node *nd;  /* 设备节点 */
     struct timer_list timer;   /* 定义一个定时器  */
     struct irq_keydesc irqkeydesc[KEY_NUM]; /* 按键描述数组 */
     unsigned char curkeynum;                /* 当前的按键号 */
@@ -74,7 +74,7 @@ static irqreturn_t key0_handler(int irq,void *dev_id)
 
     dev->curkeynum = 0;
     dev->timer.data = (volatile long)dev_id;
-    mod_timer(&dev->timer,jiffies+msecs_to_jiffies(10);
+    mod_timer(&dev->timer,jiffies+msecs_to_jiffies(10));
     return IRQ_RETVAL(IRQ_HANDLED);
 }
 
@@ -96,12 +96,14 @@ void timer_function(unsigned long arg)
     value = gpio_get_value(keydesc->gpio);      /* 读取 IO 值 */
     if(value == 0)
     {
+        printk("test press\r\n");
         /*  上报按键值 */
         input_report_key(dev->inputdev, keydesc->value, 1);
         input_sync(dev->inputdev);
     }
     else
     {
+        printk("test release\r\n");
         input_report_key(dev->inputdev, keydesc->value, 0);
         input_sync(dev->inputdev);
     }
@@ -119,7 +121,7 @@ static int keyio_init(void)
     char name[10];
     int ret = 0;
 
-    keyinputdev.nd = of_find_node_by_path("/key");
+    keyinputdev.nd = of_find_node_by_path("/gpiokey");
     if (keyinputdev.nd == NULL)
     {
         printk("key node not find!\r\n");
@@ -147,17 +149,77 @@ static int keyio_init(void)
     }
 
     /* 申请中断 */
+    keyinputdev.irqkeydesc[0].handler = key0_handler;
+    keyinputdev.irqkeydesc[0].value   = KEY_0;
 
+    for (i = 0;i < KEY_NUM; i++)
+    {
+        ret = request_irq(keyinputdev.irqkeydesc[i].irqnum,keyinputdev.irqkeydesc[i].handler,IRQF_TRIGGER_FALLING|IRQF_TRIGGER_RISING,keyinputdev.irqkeydesc[i].name,&keyinputdev);
+        if(ret < 0)
+        {
+            printk("irq %d request failed!\r\n",keyinputdev.irqkeydesc[i].irqnum);
+            return -EFAULT;
+        }
+    } 
 
+    /* 创建定时器 */
+    init_timer(&keyinputdev.timer);
+    keyinputdev.timer.function = timer_function;
+
+    /*  申请 input_dev */
+    keyinputdev.inputdev = input_allocate_device();
+    keyinputdev.inputdev->name = KEYINPUT_NAME;
+
+    keyinputdev.inputdev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REP);
+    input_set_capability(keyinputdev.inputdev, EV_KEY, KEY_0);
+
+    /*  注册输入设备 */
+    ret = input_register_device(keyinputdev.inputdev);
+    if(ret)
+    {
+        printk("register input device failed!\r\n");
+        return ret;
+    }
+    return 0;
+}
+
+ /*
+ * @description : 驱动入口函数
+ * @param : 无
+ * @return : 无
+ */
+static int __init keyinput_init(void)
+{
+    keyio_init();
+    return 0;
 }
 
 
+/*
+ * @description : 驱动出口函数
+ * @param : 无
+ * @return : 无
+ */
+static void __exit keyinput_exit(void)
+{
+    unsigned i = 0;
+    /* 删除定时器 */
+    del_timer_sync(&keyinputdev.timer);
+
+    /* 释放中断 */
+    for(i = 0;i < KEY_NUM; i++)
+    {
+        free_irq(keyinputdev.irqkeydesc[i].irqnum,&keyinputdev);
+    }
+
+    /*  释放 input_dev */
+    input_unregister_device(keyinputdev.inputdev);
+    input_free_device(keyinputdev.inputdev);
+}
 
 
-
-
-module_init(leddriver_init);
-module_exit(leddriver_exit);
+module_init(keyinput_init);
+module_exit(keyinput_exit);
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Nick");
 
