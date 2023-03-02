@@ -134,7 +134,7 @@ void lcd_fill(unsigned    short fx0, unsigned short fy0,
 
 int main(int argv , char argc)
 {	
-	int i,j;
+	int i,j,k;
 	fd_framebuff = open("/dev/fb0", O_RDWR);
 	
 	if(fd_framebuff < 0) //文件打开失败
